@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Под одной луной 🌙</title>
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    html, body {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #03040d;
+        font-family: Georgia, "Times New Roman", serif;
+        color: white;
+    }
+
+    body {
+        position: relative;
+    }
+
+    #canvas {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+    }
+
+    .vignette {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background:
+            radial-gradient(
+                ellipse at center,
+                transparent 25%,
+                rgba(0, 0, 0, .25) 65%,
+                rgba(0, 0, 0, .8) 100%
+            );
+        z-index: 3;
+    }
+
+    .intro {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+
+        background:
+            radial-gradient(circle at center,
+                rgba(32, 39, 85, .35),
+                rgba(2, 3, 12, .98) 70%);
+
+        transition:
+            opacity 1.5s ease,
+            visibility 1.5s ease;
+    }
+
+    .intro.hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .intro h1 {
+        font-size: clamp(28px, 6vw, 62px);
+        font-weight: normal;
+        letter-spacing: 3px;
+        text-align: center;
+        margin-bottom: 15px;
+
+        opacity: 0;
+        animation: introText 2s ease forwards;
+    }
+
+    .intro p {
+        color: rgba(255,255,255,.65);
+        font-size: clamp(14px, 2vw, 19px);
+        letter-spacing: 2px;
+        margin-bottom: 40px;
+
+        opacity: 0;
+        animation: introText 2s .7s ease forwards;
+    }
+
+    .start {
+        border: 1px solid rgba(255,255,255,.35);
+        background: rgba(255,255,255,.06);
+        color: white;
+
+        padding: 14px 34px;
+        border-radius: 50px;
+
+        font-family: inherit;
+        font-size: 17px;
+        letter-spacing: 2px;
+
+        cursor: pointer;
+
+        backdrop-filter: blur(10px);
+
+        transition:
+            transform .3s ease,
+            background .3s ease,
+            box-shadow .3s ease;
+
+        opacity: 0;
+        animation: introText 2s 1.4s ease forwards;
+    }
+
+    .start:hover {
+        transform: scale(1.06);
+        background: rgba(255,255,255,.12);
+        box-shadow: 0 0 35px rgba(180,200,255,.25);
+    }
+
+    @keyframes introText {
+        from {
+            opacity: 0;
+            transform: translateY(15px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Луна */
+
+    .moon {
+        position: fixed;
+        z-index: 2;
+
+        width: min(32vw, 330px);
+        height: min(32vw, 330px);
+
+        left: 50%;
+        top: 43%;
+
+        transform:
+            translate(-50%, -50%)
+            scale(.05);
+
+        opacity: 0;
+
+        border-radius: 50%;
+
+        background:
+            radial-gradient(circle at 35% 30%,
+                #fffdf2 0%,
+                #f7f2d5 45%,
+                #d8d2ae 72%,
+                #9d987e 100%);
+
+        box-shadow:
+            0 0 25px rgba(255, 248, 190, .5),
+            0 0 80px rgba(215, 225, 255, .25),
+            0 0 180px rgba(140, 160, 255, .12);
+
+        transition:
+            transform 3s cubic-bezier(.2,.8,.2,1),
+            opacity 3s ease;
+    }
+
+    .moon.visible {
+        opacity: 1;
+        transform:
+            translate(-50%, -50%)
+            scale(1);
+    }
+
+    .moon::before,
+    .moon::after {
+        content: "";
+        position: absolute;
+        border-radius: 50%;
+        background: rgba(80, 75, 60, .13);
+    }
+
+    .moon::before {
+        width: 24%;
+        height: 24%;
+        left: 18%;
+        top: 25%;
+
+        box-shadow:
+            100px 30px 0 15px rgba(80,75,60,.10),
+            60px 125px 0 8px rgba(80,75,60,.11),
+            170px 85px 0 10px rgba(80,75,60,.08),
+            125px 170px 0 18px rgba(80,75,60,.09);
+    }
+
+    .moon::after {
+        width: 12%;
+        height: 12%;
+        left: 63%;
+        top: 20%;
+
+        box-shadow:
+            -40px 80px 0 10px rgba(80,75,60,.08),
+            30px 100px 0 7px rgba(80,75,60,.08);
+    }
+
+    /* Облака */
+
+    .cloud {
+        position: fixed;
+        z-index: 4;
+
+        width: 260px;
+        height: 70px;
+
+        border-radius: 100px;
+
+        background: rgba(18, 23, 43, .55);
+        filter: blur(3px);
+
+        opacity: 0;
+    }
+
+    .cloud::before,
+    .cloud::after {
+        content: "";
+        position: absolute;
+        background: inherit;
+        border-radius: 50%;
+    }
+
+    .cloud::before {
+        width: 110px;
+        height: 110px;
+        left: 45px;
+        bottom: 0;
+    }
+
+    .cloud::after {
+        width: 80px;
+        height: 80px;
+        right: 40px;
+        bottom: 0;
+    }
+
+    .cloud-1 {
+        left: -300px;
+        top: 28%;
+    }
+
+    .cloud-2 {
+        right: -300px;
+        top: 62%;
+        transform: scale(.75);
+    }
+
+    .clouds-active .cloud {
+        opacity: .7;
+    }
+
+    .clouds-active .cloud-1 {
+        animation: cloudMove1 35s linear infinite;
+    }
+
+    .clouds-active .cloud-2 {
+        animation: cloudMove2 45s linear infinite;
+    }
+
+    @keyframes cloudMove1 {
+        from { left: -350px; }
+        to { left: 110%; }
+    }
+
+    @keyframes cloudMove2 {
+        from { right: -350px; }
+        to { right: 110%; }
+    }
+
+    /* Письмо */
+
+    .letter {
+        position: fixed;
+        z-index: 8;
+
+        left: 50%;
+        bottom: 7%;
+
+        transform: translate(-50%, 120px);
+
+        width: min(90%, 480px);
+
+        text-align: center;
+
+        opacity: 0;
+        transition:
+            transform 1.5s cubic-bezier(.2,.8,.2,1),
+            opacity 1.5s ease;
+    }
+
+    .letter.show {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+
+    .envelope {
+        width: 100px;
+        height: 70px;
+
+        margin: 0 auto 22px;
+
+        position: relative;
+
+        cursor: pointer;
+
+        background: #eee4ca;
+
+        border-radius: 4px;
+
+        box-shadow:
+            0 10px 35px rgba(0,0,0,.35),
+            0 0 30px rgba(255,255,255,.08);
+
+        transition: transform .4s ease;
+    }
+
+    .envelope:hover {
+        transform: scale(1.08) rotate(-2deg);
+    }
+
+    .envelope::before {
+        content: "";
+
+        position: absolute;
+        inset: 0;
+
+        border-left: 50px solid transparent;
+        border-right: 50px solid transparent;
+        border-top: 40px solid #d7ccb0;
+
+        transform-origin: top;
+        transition: transform .8s ease;
+    }
+
+    .envelope.open::before {
+        transform: rotateX(180deg);
+    }
+
+    .letter-text {
+        max-height: 0;
+        overflow: hidden;
+
+        transition:
+            max-height 1.5s ease,
+            opacity 1s ease;
+
+        opacity: 0;
+
+        font-size: clamp(18px, 3vw, 26px);
+        line-height: 1.6;
+        color: #fff;
+        text-shadow: 0 2px 20px rgba(0,0,0,.7);
+    }
+
+    .letter-text.open {
+        max-height: 300px;
+        opacity: 1;
+    }
+
+    .hint {
+        color: rgba(255,255,255,.55);
+        font-size: 13px;
+        letter-spacing: 2px;
+        margin-bottom: 15px;
+    }
+
+    /* Финальная фраза */
+
+    .final {
+    position: fixed;
+    z-index: 9;
+
+    left: 50%;
+    bottom: 5%;
+
+    transform: translate(-50%, 30px);
+
+    width: 90%;
+    text-align: center;
+
+    opacity: 0;
+
+    transition:
+        opacity 2s ease,
+        transform 2s ease;
+
+    font-size: clamp(20px, 4vw, 36px);
+    letter-spacing: 3px;
+
+    text-shadow:
+        0 0 10px rgba(255,255,255,.5),
+        0 0 30px rgba(150,170,255,.4);
+}
+
+.final.show {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.final small {
+    display: block;
+
+    margin-top: 10px;
+
+    font-size: 12px;
+    letter-spacing: 4px;
+
+    color: rgba(255,255,255,.5);
+}
+
+    @media (max-width: 600px) {
+        .moon {
+            width: 220px;
+            height: 220px;
+        }
+
+        .final {
+            top: 85%;
+        }
+    }
+</style>
+</head>
+
+<body>
+
+<canvas id="canvas"></canvas>
+
+<div class="vignette"></div>
+
+<!-- Вступление -->
+
+<section class="intro" id="intro">
+    <h1>У меня для тебя кое-что есть…</h1>
+    <p>Иногда достаточно просто посмотреть на небо.</p>
+
+    <button class="start" id="start">
+        Открыть ✨
+    </button>
+</section>
+
+<!-- Луна -->
+
+<div class="moon" id="moon"></div>
+
+<!-- Облака -->
+
+<div class="cloud cloud-1"></div>
+<div class="cloud cloud-2"></div>
+
+<!-- Письмо -->
+
+<div class="letter" id="letter">
+
+    <div class="hint">
+        Нажми на конверт
+    </div>
+
+    <div class="envelope" id="envelope"></div>
+
+    <div class="letter-text" id="letterText">
+        Однажды мы будем говорить друг с другом под луной,
+        <br>
+        "мы встретились случайно..." и где-то раздасться громкий хохот,
+        возможно, это посмеялся Бог... 🌙
+    </div>
+
+</div>
+
+<!-- Финал -->
+
+<div class="final" id="final">
+    Луна, действительно, прекрасная
+    <small>и пусть так будет всегда ✨</small>
+</div>
+
+
+<script>
+/* =========================================================
+   CANVAS — ЗВЁЗДЫ, ЧАСТИЦЫ И МЕТЕОРЫ
+========================================================= */
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let width;
+let height;
+let stars = [];
+let particles = [];
+let meteors = [];
+
+function resize() {
+    width = canvas.width = window.innerWidth * devicePixelRatio;
+    height = canvas.height = window.innerHeight * devicePixelRatio;
+
+    canvas.style.width = window.innerWidth + "px";
+    canvas.style.height = window.innerHeight + "px";
+
+    ctx.setTransform(
+        devicePixelRatio,
+        0,
+        0,
+        devicePixelRatio,
+        0,
+        0
+    );
+}
+
+resize();
+
+window.addEventListener("resize", resize);
+
+
+/* Звёзды */
+
+function createStars() {
+    stars = [];
+
+    const count = Math.floor(
+        (window.innerWidth * window.innerHeight) / 5500
+    );
+
+    for (let i = 0; i < count; i++) {
+        stars.push({
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+            radius: Math.random() * 1.5 + .2,
+            alpha: Math.random(),
+            speed: Math.random() * .015 + .003,
+            phase: Math.random() * Math.PI * 2
+        });
+    }
+}
+
+createStars();
+
+
+/* Частицы */
+
+function createParticles() {
+    particles = [];
+
+    for (let i = 0; i < 180; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = Math.random() * 260;
+
+        particles.push({
+            x: window.innerWidth / 2 +
+                Math.cos(angle) * distance,
+
+            y: window.innerHeight / 2 +
+                Math.sin(angle) * distance,
+
+            targetX:
+                window.innerWidth / 2 +
+                Math.cos(angle) * distance,
+
+            targetY:
+                window.innerHeight / 2 +
+                Math.sin(angle) * distance,
+
+            size: Math.random() * 2 + .5,
+
+            alpha: 0,
+
+            life: Math.random() * 100
+        });
+    }
+}
+
+createParticles();
+
+
+/* Метеор */
+
+function createMeteor() {
+    meteors.push({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight * .5,
+
+        length: Math.random() * 100 + 80,
+
+        speed: Math.random() * 7 + 6,
+
+        life: 0,
+
+        maxLife: 60
+    });
+}
+
+
+/* Рисуем */
+
+let started = false;
+let time = 0;
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    time++;
+
+    ctx.clearRect(
+        0,
+        0,
+        window.innerWidth,
+        window.innerHeight
+    );
+
+    /* фон */
+
+    const gradient = ctx.createRadialGradient(
+        window.innerWidth / 2,
+        window.innerHeight * .4,
+        0,
+        window.innerWidth / 2,
+        window.innerHeight * .4,
+        window.innerHeight
+    );
+
+    gradient.addColorStop(0, "#141b3b");
+    gradient.addColorStop(.45, "#080c22");
+    gradient.addColorStop(1, "#02030b");
+
+    ctx.fillStyle = gradient;
+
+    ctx.fillRect(
+        0,
+        0,
+        window.innerWidth,
+        window.innerHeight
+    );
+
+
+    /* звёзды */
+
+    stars.forEach(star => {
+
+        star.phase += star.speed;
+
+        const alpha =
+            .35 +
+            Math.sin(star.phase) * .3;
+
+        ctx.beginPath();
+
+        ctx.arc(
+            star.x,
+            star.y,
+            star.radius,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fillStyle =
+            `rgba(255,255,255,${alpha})`;
+
+        ctx.fill();
+    });
+
+
+    /* частицы */
+
+    if (started) {
+
+        particles.forEach(p => {
+
+            p.alpha += .004;
+
+            if (p.alpha > 1)
+                p.alpha = 1;
+
+            p.x +=
+                (p.targetX - p.x) * .003;
+
+            p.y +=
+                (p.targetY - p.y) * .003;
+
+            ctx.beginPath();
+
+            ctx.arc(
+                p.x,
+                p.y,
+                p.size,
+                0,
+                Math.PI * 2
+            );
+
+            ctx.fillStyle =
+                `rgba(220,230,255,${p.alpha})`;
+
+            ctx.fill();
+        });
+
+
+        /* Иногда метеор */
+
+        if (Math.random() < .004) {
+            createMeteor();
+        }
+    }
+
+
+    /* метеоры */
+
+    meteors.forEach((m, index) => {
+
+        m.x -= m.speed;
+        m.y += m.speed * .55;
+        m.life++;
+
+        const alpha =
+            1 - m.life / m.maxLife;
+
+        const gradient =
+            ctx.createLinearGradient(
+                m.x,
+                m.y,
+                m.x + m.length,
+                m.y - m.length * .55
+            );
+
+        gradient.addColorStop(
+            0,
+            `rgba(255,255,255,${alpha})`
+        );
+
+        gradient.addColorStop(
+            1,
+            "rgba(255,255,255,0)"
+        );
+
+        ctx.beginPath();
+
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+
+        ctx.moveTo(m.x, m.y);
+
+        ctx.lineTo(
+            m.x + m.length,
+            m.y - m.length * .55
+        );
+
+        ctx.stroke();
+
+        if (m.life > m.maxLife) {
+            meteors.splice(index, 1);
+        }
+    });
+}
+
+animate();
+
+
+/* =========================================================
+   ИНТЕРАКТИВ
+========================================================= */
+
+const intro = document.getElementById("intro");
+const start = document.getElementById("start");
+
+const moon = document.getElementById("moon");
+const letter = document.getElementById("letter");
+
+const envelope = document.getElementById("envelope");
+const letterText = document.getElementById("letterText");
+
+const final = document.getElementById("final");
+
+
+/* Запуск */
+
+start.addEventListener("click", () => {
+
+    started = true;
+
+    intro.classList.add("hidden");
+
+    /* через секунду появляется луна */
+
+    setTimeout(() => {
+        moon.classList.add("visible");
+    }, 900);
+
+
+    /* включаем облака */
+
+    setTimeout(() => {
+        document.body.classList.add("clouds-active");
+    }, 2200);
+
+
+    /* письмо */
+
+    setTimeout(() => {
+        letter.classList.add("show");
+    }, 5000);
+
+});
+
+
+/* Открытие конверта */
+
+envelope.addEventListener("click", () => {
+
+    envelope.classList.add("open");
+
+    letterText.classList.add("open");
+
+    document.querySelector(".hint").style.opacity = "0";
+
+    /* усиливаем частицы */
+
+    particles.forEach(p => {
+        p.alpha = Math.random();
+        p.targetX =
+            window.innerWidth / 2 +
+            (Math.random() - .5) * 500;
+
+        p.targetY =
+            window.innerHeight * .45 +
+            (Math.random() - .5) * 350;
+    });
+
+
+    /* финальная фраза */
+
+    setTimeout(() => {
+    letter.style.transition = "opacity 1.5s ease, transform 1.5s ease";
+    letter.style.opacity = "0";
+    letter.style.transform = "translate(-50%, 30px)";
+
+    setTimeout(() => {
+        final.classList.add("show");
+    }, 1500);
+
+}, 3500);
+
+});
+
+
+/* Клик по экрану создаёт маленький всплеск */
+
+document.addEventListener("click", event => {
+
+    if (!started) return;
+
+    for (let i = 0; i < 15; i++) {
+
+        particles.push({
+            x: event.clientX,
+            y: event.clientY,
+
+            targetX:
+                event.clientX +
+                (Math.random() - .5) * 180,
+
+            targetY:
+                event.clientY +
+                (Math.random() - .5) * 180,
+
+            size: Math.random() * 2 + .5,
+
+            alpha: 1
+        });
+    }
+
+});
+</script>
+
+</body>
+</html>
